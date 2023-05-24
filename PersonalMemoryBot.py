@@ -119,28 +119,22 @@ st.sidebar.markdown(
     """
 )
 
-# Allow the user to upload a PDF file
-uploaded_file = st.file_uploader("**Upload Your PDF File**", type=["pdf"])
-
-if uploaded_file:
+if uploaded_file := st.file_uploader("**Upload Your PDF File**", type=["pdf"]):
     name_of_file = uploaded_file.name
     doc = parse_pdf(uploaded_file)
-    pages = text_to_docs(doc)
-    if pages:
+    if pages := text_to_docs(doc):
         # Allow the user to select a page and view its content
         with st.expander("Show Page Content", expanded=False):
             page_sel = st.number_input(
                 label="Select Page", min_value=1, max_value=len(pages), step=1
             )
             pages[page_sel - 1]
-        # Allow the user to enter an OpenAI API key
-        api = st.text_input(
+        if api := st.text_input(
             "**Enter OpenAI API Key**",
             type="password",
             placeholder="sk-",
             help="https://platform.openai.com/account/api-keys",
-        )
-        if api:
+        ):
             # Test the embeddings and save the index in a vector database
             index = test_embed()
             # Set up the question-answering system
@@ -188,16 +182,11 @@ if uploaded_file:
                 agent=agent, tools=tools, verbose=True, memory=st.session_state.memory
             )
 
-            # Allow the user to enter a query and generate a response
-            query = st.text_input(
+            if query := st.text_input(
                 "**What's on your mind?**",
-                placeholder="Ask me anything from {}".format(name_of_file),
-            )
-
-            if query:
-                with st.spinner(
-                    "Generating Answer to your Query : `{}` ".format(query)
-                ):
+                placeholder=f"Ask me anything from {name_of_file}",
+            ):
+                with st.spinner(f"Generating Answer to your Query : `{query}` "):
                     res = agent_chain.run(query)
                     st.info(res, icon="🤖")
 
